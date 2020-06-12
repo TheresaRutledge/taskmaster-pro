@@ -44,7 +44,7 @@ var saveTasks = function () {
   localStorage.setItem("tasks", JSON.stringify(tasks));
 };
 
-//lilstens for click on list item text and saves text in variable
+//listens for click on list item text and saves text in variable
 $(".list-group").on("click","p",function (){
   console.log(this);
   var text=$(this)
@@ -83,8 +83,57 @@ $('.list-group').on('blur','textarea', function () {
 
   //repace textarea with p element
   $(this).replaceWith(taskP);
+})
 
+//listens for click on due date to edit
+$('.list-group').on('click','span',function () {
+  //current text
+  var date = $(this)
+  .text()
+  .trim();
 
+  //create new input element
+  var dateInput = $('<input>')
+  .attr('type', 'text')
+  .addClass('form-control')
+  .val(date);
+
+  //swap element
+  $(this).replaceWith(dateInput);
+
+  //focus on new element
+  dateInput.trigger('focus');
+
+})
+
+//when value of date is changes
+$('.list-group').on('blur', "input[type='text']",function () {
+  var date = $(this)
+  .val()
+  .trim();
+
+  // parent ul's id
+  var status = $(this)
+  .closest('.list-group')
+  .attr('id')
+  .replace('list-','');
+
+  // get position of task
+  var index = $(this)
+  .closest('.list-group-item')
+  .index();
+
+  //update task in array and resave
+  tasks[status][index].date = date;
+  saveTasks();
+
+  //recreate element with bootstrap classes
+  var taskSpan = $('<span>')
+  .addClass('badge badge-primary badge-pill')
+  .text(date);
+
+  //replace input with span
+  $(this).replaceWith(taskSpan)
 })
 
 
