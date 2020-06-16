@@ -1,4 +1,5 @@
 var tasks = {};
+var rightNow = new Date();
 
 var createTask = function (taskText, taskDate, taskList) {
   // create elements that make up a task item
@@ -12,6 +13,9 @@ var createTask = function (taskText, taskDate, taskList) {
 
   // append span and p element to parent li
   taskLi.append(taskSpan, taskP);
+
+  //check due date
+  auditTask(taskLi);
 
 
   // append to ul list on the page
@@ -103,10 +107,18 @@ $('.list-group').on('click', 'span', function () {
   var dateInput = $('<input>')
     .attr('type', 'text')
     .addClass('form-control')
-    .val(date);
+    .val(date)
+    .datepicker({
+      minDate:1,
+      onClose: function (){
+        $(this).trigger('change');
+      }
+    });
 
   //swap element
   $(this).replaceWith(dateInput);
+
+  dateInput.trigger('focus');
 
   //focus on new element
   dateInput.trigger('focus');
@@ -114,11 +126,10 @@ $('.list-group').on('click', 'span', function () {
 })
 
 //when value of date is changes
-$('.list-group').on('blur', "input[type='text']", function () {
+$('.list-group').on('change', "input[type='text']", function () {
   var date = $(this)
     .val()
     .trim();
-  console.log(date);
 
   // parent ul's id
   var status = $(this)
@@ -142,6 +153,8 @@ $('.list-group').on('blur', "input[type='text']", function () {
 
   //replace input with span
   $(this).replaceWith(taskSpan)
+
+  auditTask($(taskSpan).closest('.list-group-item'));
 })
 
 
@@ -249,6 +262,27 @@ $('.card .list-group').sortable({
       console.log('out')
     }
   });
+
+  $('#modalDueDate').datepicker({
+    minDate: 1
+  });
+
+  var auditTask = (taskEl) => {
+    var date = $(taskEl).find('span').text().trim();
+   
+
+    var time = moment(date, 'L').set('hour',17);
+    
+    $(taskEl).removeClass('list-group-item-warning list-group-item-danger');
+
+    if(moment().isAfter(time)){
+      $(taskEl).addClass('list-group-item-danger')
+    }
+    else if(Math.abs(moment().diff(time, 'days'))<= 2){
+      $(taskEl).addClass('list-group-item-warning');
+    }
+
+  }
 
 
 // load tasks for the first time
