@@ -40,63 +40,70 @@ var loadTasks = function () {
   });
 };
 
+//save tasks to localStorage
 var saveTasks = function () {
   localStorage.setItem("tasks", JSON.stringify(tasks));
 };
 
 //listens for click on list item text and saves text in variable
-$(".list-group").on("click","p",function (){
+$(".list-group").on("click", "p", function () {
   console.log(this);
-  var text=$(this)
-  .text()
-  .trim();
+  var text = $(this)
+    .text()
+    .trim();
   var textInput = $('<textarea>')
-  .addClass('form-control')
-  .val(text);
+    .addClass('form-control')
+    .val(text);
   $(this).replaceWith(textInput);
   textInput.trigger('focus');
 });
-$('.list-group').on('blur','textarea', function () {
+
+//listens for click outside of clickable area
+$('.list-group').on('blur', 'textarea', function () {
   //textareas current value
+  console.log(`this: ${this}`);
   var text = $(this)
-  .val()
-  .trim();
+    .val()
+    .trim();
+  console.log(`text: ${text}`);
 
   //parent ul's id attribute
   var status = $(this)
-  .closest('.list-group')
-  .attr('id')
-  .replace('list-','');
+    .closest('.list-group')
+    .attr('id')
+    .replace('list-', '');
+  console.log(`status: ${status}`)
 
   //tasks position in the list
   var index = $(this)
-  .closest('.list-group-item')
-  .index();
+    .closest('.list-group-item')
+    .index();
+  console.log(`index: ${index}`)
 
   tasks[status][index].text = text;
   saveTasks();
 
   //recreate p element
   var taskP = $('<p>')
-  .addClass('m-1')
-  .text(text);
+    .addClass('m-1')
+    .text(text);
 
   //repace textarea with p element
   $(this).replaceWith(taskP);
 })
 
 //listens for click on due date to edit
-$('.list-group').on('click','span',function () {
+$('.list-group').on('click', 'span', function () {
   //current text
   var date = $(this)
-  .text()
-  .trim();
+    .text()
+    .trim();
 
   //create new input element
   var dateInput = $('<input>')
-  .attr('type', 'text')
-  .addClass('form-control')
-  .val(date);
+    .attr('type', 'text')
+    .addClass('form-control')
+    .val(date);
 
   //swap element
   $(this).replaceWith(dateInput);
@@ -107,21 +114,22 @@ $('.list-group').on('click','span',function () {
 })
 
 //when value of date is changes
-$('.list-group').on('blur', "input[type='text']",function () {
+$('.list-group').on('blur', "input[type='text']", function () {
   var date = $(this)
-  .val()
-  .trim();
+    .val()
+    .trim();
+  console.log(date);
 
   // parent ul's id
   var status = $(this)
-  .closest('.list-group')
-  .attr('id')
-  .replace('list-','');
+    .closest('.list-group')
+    .attr('id')
+    .replace('list-', '');
 
   // get position of task
   var index = $(this)
-  .closest('.list-group-item')
-  .index();
+    .closest('.list-group-item')
+    .index();
 
   //update task in array and resave
   tasks[status][index].date = date;
@@ -129,8 +137,8 @@ $('.list-group').on('blur', "input[type='text']",function () {
 
   //recreate element with bootstrap classes
   var taskSpan = $('<span>')
-  .addClass('badge badge-primary badge-pill')
-  .text(date);
+    .addClass('badge badge-primary badge-pill')
+    .text(date);
 
   //replace input with span
   $(this).replaceWith(taskSpan)
@@ -181,6 +189,67 @@ $("#remove-tasks").on("click", function () {
   }
   saveTasks();
 });
+
+//make ul items sortable
+$('.card .list-group').sortable({
+  connectWith: $('.card .list-group'),
+  scroll: false,
+  tolerance: 'pointer',
+  helper: 'clone',
+  activate: function (event) {
+    // console.log('activate', this);
+  },
+  deactivate: function (event) {
+    // console.log('deactivate', this);
+  },
+  over: function (event) {
+    // console.log('over', event.target);
+  },
+  out: function (event) {
+    // console.log('out', event.target);
+  },
+  update: function (event) {
+    var tempArr = [];
+    $(this).children().each(function () {
+      var text = $(this)
+        .find('p')
+        .text()
+        .trim();
+
+      var date = $(this)
+        .find('span')
+        .text()
+        .trim();
+
+      tempArr.push({
+        text: text,
+        date: date
+      });
+    });
+    var arrName = $(this)
+    .attr('id')
+    .replace('list-','');
+
+    tasks[arrName]=tempArr;
+    saveTasks();
+  }
+  });
+
+  $('#trash').droppable({
+    accept: '.card .list-group-item',
+    tolerance: 'touch',
+    drop: function(event, ui){
+      console.log('drop');
+      ui.draggable.remove();
+    },
+    over: function(event, ui){
+      console.log('over');
+    },
+    out: function (event, ui){
+      console.log('out')
+    }
+  });
+
 
 // load tasks for the first time
 loadTasks();
